@@ -1,0 +1,38 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ANGELPIERCINGS MKT CONTROL</title>
+<style>
+html,body{height:100%;margin:0;font-family:Inter,Arial,sans-serif;background:#f6f7f9;color:#171a1f;display:grid;place-items:center}
+main{width:min(420px,calc(100% - 32px));background:#fff;border:1px solid #e6e9ee;border-radius:10px;padding:22px;box-shadow:0 10px 30px rgba(23,26,31,.08)}
+strong{display:block;margin-bottom:6px;font-size:16px}.muted{color:#77808c;font-size:13px;line-height:1.5}
+</style>
+</head>
+<body>
+<main><strong>ANGELPIERCINGS MKT CONTROL</strong><div class="muted" id="status">Carregando painel...</div></main>
+<script>
+(async function(){
+  const parts = ['payload/index-01.txt','payload/index-02.txt','payload/index-03.txt','payload/index-04.txt','payload/index-05.txt','payload/index-06.txt'];
+  const status = document.getElementById('status');
+  try {
+    if (!('DecompressionStream' in window)) throw new Error('Este navegador nao suporta descompactacao nativa.');
+    const packed = (await Promise.all(parts.map(async function(url){
+      const resp = await fetch(url, {cache:'no-store'});
+      if (!resp.ok) throw new Error('Falha ao carregar ' + url);
+      return resp.text();
+    }))).join('');
+    const bytes = Uint8Array.from(atob(packed), function(c){ return c.charCodeAt(0); });
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+    const html = await new Response(stream).text();
+    document.open();
+    document.write(html);
+    document.close();
+  } catch (err) {
+    status.textContent = 'Nao foi possivel carregar o painel: ' + (err && err.message ? err.message : err);
+  }
+})();
+</script>
+</body>
+</html>
